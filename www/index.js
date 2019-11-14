@@ -1,3 +1,4 @@
+document.domain='uios.me';
 function byId(id) { return document.getElementById(id); }
 function webCam(video) {
   navigator.mediaDevices.getUserMedia({audio: true, video: { facingMode: "user" }}).then(stream => {
