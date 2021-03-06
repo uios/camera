@@ -1,8 +1,0 @@
-{
-    "name": "uiOS - Chat",
-    "short_name": "Chat",
-    "theme_color": "#ffffff",
-    "background_color": "#ffffff",
-    "start_url": "https://app.uios.me",
-    "display": "standalone"
-}
