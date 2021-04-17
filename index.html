@@ -16,10 +16,129 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/cdn/png/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
     <link rel="mask-icon" href="/cdn/svg/safari-pinned-tab.svg" color="#5bbad5">
-    <link async rel="stylesheet" href="/index.css" media="all">
-    <script src='/cdn/js/jpurey.js'></script>
-    <script src='/index.js'></script>
-    <script src='/cdn/js/webcam.js'></script>
+    <style>
+    body { margin: 0; background: #2d2d2d; }
+
+    .body-main { width: 100%; min-height: 100%; }
+
+    .webcam {width: 100%;height: 100%;position: absolute;margin: auto;top: 0;left: 0;right: 0;bottom: 0;}
+    @media screen and (orientation: portrait) {
+        .webcam {/* width: 100vw; *//* height: 100vw; */}
+    }
+
+    .webcam .video { position: absolute; top: 0; lefT: 0; right: 0; bottom: 0; width: 100%; height: 100%; object-fit: cover; }
+
+    .canvas { display: none; }
+
+    .file { display: none; }
+    </style>
+    <script>
+    window.byId = s => { return document.getElementById(s); }
+    window.$ = obj => { return (typeof obj === 'object') ? (NodeList.prototype.isPrototypeOf(obj)) ? [].slice.call(obj) : (Element.prototype.isPrototypeOf(obj) ? [obj] : null) : (typeof obj === 'string' ? [].slice.call(obj) : null); }
+    </script>
+    <script>
+    window.onload = () => {
+        window.dom = {
+          "body": document.body,
+          "video": byId("video")
+        };
+        webcam.play();
+    }
+    </script>
+    <script>
+    window.webcam = {
+        global: {
+            width: 1920, 
+            height: 0
+        },
+        audio: null,
+        clear: target => {
+            dom.camera.classList.remove('snap');
+            dom.camera.find('img').removeAttribute('src');
+            dom.camera.find('#camera-photo').innerHTML = `<div class="audio waveform"><div class="controls"><a class="play"></a></div><audio></audio></div><img class="photo"><video class="video"></video>`;
+            dom.camera.find('[type="file"]').remove();
+            dom.camera.insertAdjacentHTML('afterbegin','<input style="display:none;" type="file" onchange="webcam.file(this);">');
+        },
+        constraints: {
+            vertical: { video: {width: {exact: 1080}, height: {exact: 1920}} },
+            horizontal: {
+                video: {
+                    width: { min: 640, ideal: 1920, max: 4096 },
+                    height: { min: 400, ideal: 1080, max: 2160 },
+                    aspectRatio: { ideal: 1.7777777778 },
+                    facingMode: 'environment'
+                } 
+            }
+        },
+        canplay: event => {
+            var video = event.target;
+            if(!video.classList.contains('canplay')) {
+                var width = webcam.global.width;
+                var height = video.videoHeight / (video.videoWidth/width);
+                video.setAttribute('width', width);
+                video.setAttribute('height', height);
+                canvas.setAttribute('width', width);
+                canvas.setAttribute('height', height);
+                video.classList.add('canplay');
+            }
+        },
+        media: null,
+        play: (paths) => {
+            return new Promise((resolve, reject) => { //console.log(link,arrayRemove(link,""));
+                var video = byId('video');
+
+                if(window.width < window.height) { constraints = webcam.constraints.horizontal; }
+                else { constraints = webcam.constraints.horizontal; }
+
+                navigator.mediaDevices.getUserMedia(constraints).then(async stream => {
+                    var track = stream.getVideoTracks()[0];
+                    video.srcObject = webcam.stream = stream;
+                    video.onloadedmetadata = data => {
+                        var capabilities = track.getCapabilities(); console.log({capabilities});
+                        if(capabilities.zoom) { }
+                        if(capabilities.torch) { }
+                        dom.body.dataset.webcam = "playing";
+                        dom.video.play();
+                        resolve({paths});
+                    }
+                }).catch(err => { console.log({err});
+                    dom.body.removeAttribute("data-webcam");
+                    resolve({paths,err});
+                });
+            });
+        },
+        resize: image => {
+
+        },
+        skip: () => {
+            ('/create/'+byId('lens').dataset.media+'/').router();
+        },
+        save: target => {
+        },
+        snap: () => {
+
+        },
+        stop: (paths) => {
+            return new Promise((resolve, reject) => { 
+            if(webcam.stream) {
+                var video = byId('webcam');
+                webcam.stream.getTracks().forEach(track => track.stop());
+                video.parentNode.classList.remove('playing');
+                //$(all('.io')).removeClass('i').addClass('o');
+                //dom.body.dataset.cam = false;
+            }
+            });
+        },
+        stream: null,
+        camera: () => { return dom.body.dataset.cam === "true"; },
+        capture: () => { return dom.camera.find('[type="file"]').capture !== undefined; },
+        load: {
+            down: target => { target.href = canvas.toDataURL('image/png'); },
+            up: event => { }
+        }
+    }
+    function keyByVal(object, value) { return Object.keys(object).find(key => object[key] === value); }
+    </script>
   </head><!--
 
   --><body class="html-body" id="html-body"><!--
