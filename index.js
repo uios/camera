@@ -26,7 +26,7 @@ function init() {
     }
 
     dom.body.dataset.theme = "meridiem";
-    
+
     dom.body.onclick = (event)=>on.touch.tap(event);
 
     (dom.boot.dataset.href ? dom.boot.dataset.href : window.location.pathname).router().then(e=>dom.body.dataset.load = "ed");
@@ -334,55 +334,27 @@ window.webcam = {
 
     control: {
         play: (paths)=>{
-            return new Promise((resolve,reject)=>{
-                //console.log(link,arrayRemove(link,""));
+            const a = async(resolve,reject)=>{
                 var camera = byId('camera');
                 if (camera) {
                     var video = camera.find("video");
-
                     if (window.width < window.height) {
                         constraints = webcam.constraints.horizontal;
                     } else {
                         constraints = webcam.constraints.horizontal;
                     }
 
-                    navigator.mediaDevices.getUserMedia(constraints).then(async stream=>{
-                        var track = stream.getVideoTracks()[0];
-                        video.srcObject = webcam.stream = stream;
-                        video.onloadedmetadata = data=>{
-                            console.log({
-                                video,
-                                track
-                            });
-                            //alert('play');
-                            //var capabilities = track.getCapabilities(); console.log({capabilities});
-                            //if(capabilities.zoom) { }
-                            //if(capabilities.torch) { }
-
-                            //webcam.enumerate();
-                            //alert('play');
-
-                            //$(all('.io')).addClass('i').removeClass('o');
-                            dom.body.dataset.webcam = true;
-                            $(camera).addClass('playing')[0].find('video').play();
-                            camera.dataset.mode = 'camera';
-                            resolve({
-                                paths
-                            });
-                        }
-                    }
-                    ).catch(err=>{
-                        $(camera).removeClass('playing');
-                        dom.body.dataset.cam = false;
-                        resolve({
-                            paths,
-                            err
-                        });
-                    }
-                    );
+                    webcam.stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    video.srcObject = webcam.stream;
+                    dom.body.dataset.webcam = true;
+                    $(camera).addClass('playing')[0].find('video').play();
+                    camera.dataset.mode = 'camera';
+                    resolve({
+                        paths
+                    });
                 }
             }
-            );
+            return new Promise((resolve,reject)=>a(resolve, reject));
         }
         ,
         stop: (paths)=>{
@@ -423,8 +395,9 @@ window.webcam = {
                         i++;
                     }
                     var next = objByKeyVal(videos, 'deviceId', id);
-                    var v = parseInt(keyByVal(videos, next)) + 1; console.log(devices, videos, next, v, videos[v === videos.length ? 0 : v]);
-                    var w = videos[v === videos.length ? 0 : v].deviceId; 
+                    var v = parseInt(keyByVal(videos, next)) + 1;
+                    console.log(devices, videos, next, v, videos[v === videos.length ? 0 : v]);
+                    var w = videos[v === videos.length ? 0 : v].deviceId;
                     const videoConstraints = {};
                     videoConstraints.deviceId = {
                         exact: w
@@ -449,117 +422,6 @@ window.webcam = {
     },
 
     load: {
-        file: input=>{
-            return new Promise((resolve,reject)=>{
-                var files = input.files;
-                //webcam.media = files[0];
-                if (files.length > 0) {
-                    if (files.length === 1) {
-                        var reader = new FileReader();
-                        var file = files[0];
-                        console.log({
-                            file
-                        });
-                        reader.readAsDataURL(file);
-                        reader.onload = ()=>onLoad(reader.result, file.type);
-                        reader.onloadstart = ()=>{
-                            console.log();
-                        }
-                        ;
-                        reader.onprogress = evt=>onProgress(evt);
-                        reader.onabort = ()=>{}
-                        ;
-                        reader.onerror = ()=>console.log(reader.error);
-                    }
-                }
-                function onLoad(file, type) {
-                    var camera = byId('camera');
-                    var format = type;
-                    if (format.includes('image')) {
-                        var canvas = camera.find('canvas');
-                        var video = camera.find('video');
-                        var photo = camera.find('#camera-photo');
-                        var width = webcam.global.width;
-                        var context = canvas.getContext('2d');
-                        var img = new Image();
-                        img.src = file;
-                        img.addEventListener("load", ()=>{
-                            webcam.global.width = photo.width = canvas.width = width;
-                            var height = webcam.global.height = photo.height = canvas.height = img.height / (img.width / width);
-                            context.drawImage(img, 0, 0, width, height);
-                            //console.log({width,height});
-                            if (width && height) {
-                                canvas.width = width;
-                                canvas.height = height;
-                                //var png = canvas.toDataURL(type);
-                                context.drawImage(img, 0, 0, width, height);
-                                webcam.media = file;
-                                resolve({
-                                    file,
-                                    type
-                                });
-                                //console.log(131,{file,type,elem});
-                            }
-                        }
-                        );
-                    }
-                    if (format.includes('video')) {
-                        var cam = byId('video');
-                        dom.camera.find('#camera-video').src = file
-                        //byId('camera-download').href = file;
-                        cam.closest('.camera').classList.add('snap');
-                        cam.closest('.create-form').classList.add('snap');
-                        resolve({
-                            file,
-                            type
-                        });
-                    }
-                    if (format.includes('audio')) {
-                        webcam.media = file;
-                        webcam.audio ? webcam.audio.destroy() : null;
-                        webcam.audio = WaveSurfer.create({
-                            container: '#camera-photo .waveform',
-                            cursorColor: '#777',
-                            progressColor: '#0096c7',
-                            responsive: true,
-                            waveColor: '#fff'
-                        });
-                        webcam.audio.loadBlob(files[0]);
-                        webcam.audio.on('ready', ()=>{
-                            webcam.audio.play();
-                            byId('create-audio-play').classList.add('ing');
-                        }
-                        );
-                        webcam.audio.on('play', ()=>{
-                            byId('create-audio-play').classList.add('ing');
-                        }
-                        );
-                        webcam.audio.on('pause', ()=>{
-                            byId('create-audio-play').classList.remove('ing');
-                        }
-                        );
-                        //dom.camera.classList.add('snap');
-                        resolve({
-                            file,
-                            type
-                        });
-                    }
-                }
-                function onProgress(evt) {
-                    console.log({
-                        evt
-                    });
-                    if (evt.lengthComputable) {
-                        var percentLoaded = Math.round((evt.loaded / evt.total) * 100);
-                        if (percentLoaded < 100) {
-                            console.log(percentLoaded);
-                        }
-                    }
-                }
-            }
-            );
-        }
-        ,
         down: target=>{
             target.href = canvas.toDataURL('image/png');
         }
@@ -602,7 +464,7 @@ window.webcam = {
             }
         }
     },
-    
+
     clear: target=>{
 
         var cam = dom.camera;
